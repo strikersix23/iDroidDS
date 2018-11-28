@@ -28,6 +28,9 @@ def getVersionName = {
 android {
     signingConfigs {
     }
+    dependencies {
+        api 'com.dropbox.core:dropbox-core-sdk:3.0.9'
+    }
     compileSdkVersion 27
     defaultConfig {
         applicationId 'org.opendoorstudios.ds4droid'
@@ -57,9 +60,11 @@ android {
     }
     productFlavors {
     }
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.3'
 }
 
 dependencies {
-    compile files('libs/ouya-sdk.jar')
+    implementation files('libs/ouya-sdk.jar')
+    api 'net.sf.sevenzipjbinding:sevenzipjbinding:9.20-2.00beta'
+    implementation 'net.sf.sevenzipjbinding:sevenzipjbinding-linux-arm:9.20-2.00beta'
 }

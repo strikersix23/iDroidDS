@@ -1215,24 +1215,24 @@ static void gfx3d_glNormal(s32 v)
 
 	//apply lighting model
 	u8 diffuse[3] = {
-		(dsDiffuse)&0x1F,
-		(dsDiffuse>>5)&0x1F,
-		(dsDiffuse>>10)&0x1F };
+			static_cast<u8> ((dsDiffuse)&0x1F),
+		        static_cast<u8> ((dsDiffuse>>5)&0x1F),
+		        static_cast<u8> ((dsDiffuse>>10)&0x1F) };
 
 	u8 ambient[3] = {
-		(dsAmbient)&0x1F,
-		(dsAmbient>>5)&0x1F,
-		(dsAmbient>>10)&0x1F };
+			static_cast<u8> ((dsAmbient)&0x1F),
+		        static_cast<u8> ((dsAmbient>>5)&0x1F),
+		        static_cast<u8> ((dsAmbient>>10)&0x1F) };
 
 	u8 emission[3] = {
-		(dsEmission)&0x1F,
-		(dsEmission>>5)&0x1F,
-		(dsEmission>>10)&0x1F };
+			static_cast<u8> ((dsEmission)&0x1F),
+		        static_cast<u8> ((dsEmission>>5)&0x1F),
+		        static_cast<u8> ((dsEmission>>10)&0x1F) };
 
 	u8 specular[3] = {
-		(dsSpecular)&0x1F,
-		(dsSpecular>>5)&0x1F,
-		(dsSpecular>>10)&0x1F };
+			static_cast<u8> ((dsSpecular)&0x1F),
+		        static_cast<u8> ((dsSpecular>>5)&0x1F),
+		        static_cast<u8> ((dsSpecular>>10)&0x1F) };
 
 	int vertexColor[3] = { emission[0], emission[1], emission[2] };
 
@@ -1241,9 +1241,9 @@ static void gfx3d_glNormal(s32 v)
 		if(!((lightMask>>i)&1)) continue;
 
 		u8 _lightColor[3] = {
-			(lightColor[i])&0x1F,
-			(lightColor[i]>>5)&0x1F,
-			(lightColor[i]>>10)&0x1F };
+				static_cast<u8> ((lightColor[i])&0x1F),
+			        static_cast<u8> ((lightColor[i]>>5)&0x1F),
+			        static_cast<u8> ((lightColor[i]>>10)&0x1F) };
 
 		//This formula is the one used by the DS
 		//Reference : http://nocash.emubase.de/gbatek.htm#ds3dpolygonlightparameters
@@ -1770,7 +1770,7 @@ void gfx3d_glAlphaFunc(u32 v)
 
 unsigned int gfx3d_glGetPosRes(unsigned int index)
 {
-	return (unsigned int)(PTcoords[index] * 4096.0f);
+	return (unsigned int)(int)(PTcoords[index] * 4096.0f);
 }
 
 //#define _3D_LOG_EXEC

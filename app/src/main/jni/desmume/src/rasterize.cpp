@@ -683,14 +683,9 @@ public:
 		//this is a HACK: 
 		//we are being very sloppy with our interpolation precision right now
 		//and rather than fix it, i just want to clamp it
-		shader.materialColor.r = (u8) max(0U, min(63U, u32floor(r)));
-		shader.materialColor.g = (u8) max(0U, min(63U, u32floor(g)));
-		shader.materialColor.b = (u8) max(0U, min(63U, u32floor(b)));
-
-		/*MakeFragmentColor(max<u8>(0x00, min<u32>(0x3F,u32floor(r))),
-						  max<u8>(0x00, min<u32>(0x3F,u32floor(g))),
-						  max<u8>(0x00, min<u32>(0x3F,u32floor(b))),
-						  polyAttr.alpha);*/
+		shader.materialColor.r = max(0U,min(63U,u32floor(r)));
+		shader.materialColor.g = max(0U,min(63U,u32floor(g)));
+		shader.materialColor.b = max(0U,min(63U,u32floor(b)));
 
 		shader.materialColor.a = polyAttr.alpha;
 

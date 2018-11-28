@@ -22,7 +22,7 @@
 #include <android/native_window_jni.h>
 
 #include <EGL/egl.h>
-#include <GLES/gl.h>
+#include <GLES2/gl2.h>
 #include <android/sensor.h>
 #include <android/bitmap.h>
 #include <GPU.h>
@@ -31,7 +31,6 @@
 
 #include "main.h"
 #include "../OGLES2Render.h"
-#include "../OGLES3Render.h"
 #include "../rasterize.h"
 #include "../SPU.h"
 #include "../debug.h"
@@ -46,11 +45,6 @@
 #include "OpenArchive.h"
 #include "sndopensl.h"
 #include "cheatSystem.h"
-//#include "neontest.h"
-
-#if defined(HAVE_NEON)
-#include <android/math-neon/math_neon.h>
-#endif
 
 #define JNI(X,...) Java_com_opendoorstudios_ds4droid_DeSmuME_##X(JNIEnv* env, jclass* clazz, __VA_ARGS__)
 #define JNI_NOARGS(X) Java_com_opendoorstudios_ds4droid_DeSmuME_##X(JNIEnv* env, jclass* clazz)
@@ -61,7 +55,6 @@ unsigned int frameCount = 0;
 GPU3DInterface *core3DList[] = {
 	&gpu3DNull,
 	&gpu3Dgles2,
-    &gpu3Dgles3,
 	&gpu3DRasterize,
 	NULL
 };
@@ -93,7 +86,6 @@ EGLContext context;
 const char* IniName = NULL;
 char androidTempPath[1024];
 extern bool enableMicrophone;
-PathInfo pathInfo;
 
 #ifdef USE_PROFILER
 bool profiler_start = false;
@@ -511,14 +503,6 @@ jint JNI(draw, jobject bitmapMain, jobject bitmapTouch, jboolean rotate)
 
 		video.filter();
 	}
-    else if(bitmapInfo.format == ANDROID_BITMAP_FORMAT_RGBA_4444)
-    {
-        u16* dest = (u16*)video.buffer;
-        for(int i=0;i<size;++i)
-            *dest++ = (u16) RGB15TO24_REVERSE(*src++);
-
-		video.filter();
-    }
 
 	//here the magic happens
 	void* pixels = NULL;
@@ -606,7 +590,7 @@ void JNI(restoreState, int slot)
 
 void loadSettings(JNIEnv* env)
 {
-	CommonSettings.num_cores = sysconf( _SC_NPROCESSORS_ONLN );
+	CommonSettings.num_cores = static_cast<int>(sysconf(_SC_NPROCESSORS_ONLN ));
 	LOGI("%i cores detected", CommonSettings.num_cores); 
 	CommonSettings.cheatsDisable = GetPrivateProfileBool(env,"General", "cheatsDisable", false, IniName);
 	CommonSettings.autodetectBackupMethod = GetPrivateProfileInt(env,"General", "autoDetectMethod", 0, IniName);
@@ -640,7 +624,7 @@ void loadSettings(JNIEnv* env)
 	CommonSettings.spuInterpolationMode = (SPUInterpolationMode)GetPrivateProfileInt(env, "Sound","SPUInterpolation", 1, IniName);
 	snd_synchmode = GetPrivateProfileInt(env, "Sound","SynchMode",0,IniName);
 	snd_synchmethod = GetPrivateProfileInt(env, "Sound","SynchMethod",0,IniName);
-	sndcoretype = GetPrivateProfileInt(env, "Sound","SoundCore", 1, IniName);
+	sndcoretype = GetPrivateProfileBool(env, "Sound","SoundCore", true, IniName);
 	// The original was 8/60. By decreasing the buffer sample rate, we seem to be getting much better sound.
 	sndbuffersize = GetPrivateProfileInt(env, "Sound","SoundBufferSize", DESMUME_SAMPLE_RATE*8/120, IniName);
 
@@ -679,12 +663,11 @@ void JNI_NOARGS(loadSettings)
 void JNI(init, jobject _inst)
 {
 #if defined(HAVE_NEON)
-	//neontest();
-	//enable_runfast();
+
 #endif
 	INFO("");
 
-	Logger::setCallbackAll(logCallback);
+	//Logger::setCallbackAll(logCallback);
 
 	oglrender_init = android_opengl_init;
 	InitDecoder();
@@ -752,8 +735,8 @@ void JNI(init, jobject _inst)
 	
 	NDS_Init();
 
-    // This is for the renderer used. By default, we use OpenGL ES 2.0 because of rasterizer problems.
-	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 1, IniName);
+    // This is for the renderer used. Default is rasterizer.
+	cur3DCore = GetPrivateProfileInt(env, "3D", "Renderer", 2, IniName);
 	NDS_3D_ChangeCore(cur3DCore);
 	
 	LOG("Init sound core\n");
@@ -823,7 +806,7 @@ void JNI(setWorkingDir, jstring path, jstring temp)
 {
 	jboolean isCopy;
 	const char* szPath = env->GetStringUTFChars(path, &isCopy);
-	strncpy(pathInfo.pathToModule, szPath, MAX_PATH);
+	strncpy(PathInfo::pathToModule, szPath, MAX_PATH);
 	env->ReleaseStringUTFChars(path, szPath);
 	
 	szPath = env->GetStringUTFChars(temp, &isCopy);
